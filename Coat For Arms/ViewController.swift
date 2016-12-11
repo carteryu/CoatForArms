@@ -7,12 +7,10 @@
 //
 
 import UIKit
+import AVFoundation
 import CoreLocation
 
-class ViewController: UIViewController,
-    WeatherGetterDelegate,
-    CLLocationManagerDelegate,
-    UITextFieldDelegate
+class ViewController: UIViewController,WeatherGetterDelegate,CLLocationManagerDelegate,UITextFieldDelegate
 {
     
     @IBOutlet weak var weatherLabel: UILabel!
@@ -28,6 +26,7 @@ class ViewController: UIViewController,
     
     let locationManager = CLLocationManager()
     var weather: WeatherGetter!
+    var audioPlayer = AVAudioPlayer()
     
     
     override func viewDidLoad() {
@@ -54,10 +53,11 @@ class ViewController: UIViewController,
         super.didReceiveMemoryWarning()
     }
     
-    
+
     @IBAction func getWeatherForLocationButtonTapped(sender: UIButton) {
         setWeatherButtonStates(false)
         getLocation()
+        
     }
     
     @IBAction func getWeatherForCityButtonTapped(sender: UIButton) {
@@ -66,6 +66,14 @@ class ViewController: UIViewController,
         }
         setWeatherButtonStates(false)
         weather.getWeatherByCity(cityTextField.text!.urlEncoded)
+        let CatSound = NSURL(fileURLWithPath: NSBundle.mainBundle().pathForResource("lol", ofType: "wav")!)
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOfURL: CatSound)
+            audioPlayer.prepareToPlay()
+        } catch {
+            print("Problem in getting File")
+        }
+        audioPlayer.play()
     }
     
     func setWeatherButtonStates(state: Bool) {
@@ -95,7 +103,7 @@ class ViewController: UIViewController,
     func didNotGetWeather(error: NSError) {
         dispatch_async(dispatch_get_main_queue()) {
             self.showSimpleAlert(title: "Can't get the weather",
-                message: "The weather service isn't responding.")
+                message: "API isn't responding. Maybe you reached the limit?")
             self.getLocationWeatherButton.enabled = true
             self.getCityWeatherButton.enabled = self.cityTextField.text?.characters.count > 0
         }
@@ -160,10 +168,9 @@ class ViewController: UIViewController,
     
     func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
         dispatch_async(dispatch_get_main_queue()) {
-            self.showSimpleAlert(title: "Can't determine your location",
-                message: "The GPS and other location services aren't responding.")
+            self.showSimpleAlert(title: "Can't fetch location :(",
+                message: "Please make sure your GPS is working!")
         }
-        print("locationManager didFailWithError: \(error)")
     }
     
     func textField(textField: UITextField,
