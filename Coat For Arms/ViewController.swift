@@ -27,6 +27,8 @@ class ViewController: UIViewController,WeatherGetterDelegate,CLLocationManagerDe
     let locationManager = CLLocationManager()
     var weather: WeatherGetter!
     var audioPlayer = AVAudioPlayer()
+    var temperature : Float = 0
+    var wind : Float = 0
     
     
     override func viewDidLoad() {
@@ -87,6 +89,10 @@ class ViewController: UIViewController,WeatherGetterDelegate,CLLocationManagerDe
             self.cityLabel.text = weather.city
             self.weatherLabel.text = weather.weatherDescription
             self.temperatureLabel.text = "\(Int(round(weather.tempFahrenheit)))°"
+            let floatVersion = Float(weather.tempFahrenheit)
+            let nearest = roundf(floatVersion * 100) / 100;
+            self.temperature = Float(nearest)
+            self.wind = Float(weather.windSpeed)
             self.windLabel.text = "\(weather.windSpeed) m/s"
             if let rain = weather.rainfallInLast3Hours {
                 self.rainLabel.text = "\(rain) mm"
@@ -218,6 +224,16 @@ class ViewController: UIViewController,WeatherGetterDelegate,CLLocationManagerDe
             animated: true,
             completion: nil
         )
+    }
+    
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?){
+        if segue.identifier == "SegueID"{
+            if let destination = segue.destinationViewController as? SuggestionViewController{
+                destination.temperature = self.temperature
+                destination.wind = self.wind
+            }
+        }
     }
     
 }
